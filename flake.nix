@@ -1,29 +1,57 @@
 {
-  description = "nix-generators";
+  description = "Example bundlers";
 
   inputs.nix-utils.url = "github:juliosueiras-nix/nix-utils";
-  outputs = { self, nixpkgs, nix-utils }: {
+  inputs.nix-bundle.url = "github:matthewbauer/nix-bundle";
 
-    defaultBundler = self.bundlers.toReport;
+  outputs = { self, nixpkgs, nix-bundle, nix-utils }: let
+      # System types to support.
+      supportedSystems = [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
 
-    bundlers = let
-      prog = program: with program; "${outPath}/bin/${if meta?mainProgram then meta.mainProgram else (builtins.parseDrvName name).name}";
-    in {
+      # Helper function to generate an attrset '{ x86_64-linux = f "x86_64-linux"; ... }'.
+      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
 
-      toRPM = {program,system}: nix-utils.bundlers.rpm {inherit system; program=prog program;};
+      # Nixpkgs instantiated for supported system types.
+      nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
 
-      toDEB = {program,system}: nix-utils.bundlers.deb {inherit system; program=prog program;};
+      # Backwards compatibility helper for previous bundler API
+      program = p: with p; "${outPath}/bin/${
+        if meta?mainProgram then
+          meta.mainProgram
+        else
+          (builtins.parseDrvName name).name
+      }";
+  in {
 
-      toDockerImage = {program, system}: nixpkgs.legacyPackages.${system}.dockerTools.buildLayeredImage {
-        name = program.name;
-        tag = "latest";
-        contents = [ program ];
+    # defaultBundler.x86_64-linux = forAllSystems (system: self.bundlers.${system}.toArx);
+    defaultBundler.x86_64-linux = self.bundlers.x86_64-linux.toArx;
+
+    bundlers = forAllSystems (system: {
+      toArx = drv: nix-bundle.bundlers.nix-bundle {inherit system; program=program drv;};
+
+      toRPM = drv: nix-utils.bundlers.rpm {inherit system; program=program drv;};
+
+      toDEB = drv: nix-utils.bundlers.deb {inherit system; program=program drv;};
+
+      toDockerImage = drv:
+        nixpkgs.legacyPackages.${system}.dockerTools.buildLayeredImage {
+          name = drv.name;
+          tag = "latest";
+          contents = [ drv ];
       };
 
-      toReport = {program, system}:
-        import ./default.nix {
-          inherit program system;
-          pkgs = nixpkgs.legacyPackages.${system};};
-        };
-    };
+      toBuildDerivation = drv:
+        (import ./default.nix {
+          inherit drv;
+          pkgs = nixpkgsFor.${system};}).buildtimeDerivations;
+
+      toReport = drv:
+         builtins.trace drv
+        (import ./default.nix {
+          inherit drv;
+          pkgs = nixpkgsFor.${system};}).runtimeReport;
+
+      identity = drv: drv;
+    });
+  };
 }

@@ -1,3 +1,5 @@
+# MIT License, see below
+#
 # These are some helpers for figuring out the derivations attributes of runtime
 # dependencies of a derivation, in particular the function `runtimeReport`. At
 # the bottom of the file you can see it used on `hello`. Spoiler: glibc is a
@@ -8,7 +10,7 @@
 
 # Let's call these "imports". They're functions used throughout the code.
 # Nothing interesting here.
-{ program, system, pkgs ? import <nixpkgs>{}}:
+{ drv, pkgs ? import <nixpkgs>{}}:
 with rec
   {
     inherit (pkgs)
@@ -91,6 +93,7 @@ runtimeReport = drv:
             unique_by(.path)
             # Then we map over each build-time derivation and use `select()`
             # to keep only the ones that show up in $runtime
+
           | map(    # this little beauty checks if "obj.path" is in "runtime"
                 select(. as $obj | $runtime | any(.[] | . == $obj.path))
               | .report)
@@ -189,4 +192,38 @@ cinfo = drv: runCommand "${drv.name}-cinfo"
       jq -c 'map(select( length > 0 ))' > $out
   '';
 
-in runtimeReport program
+in {
+  runtimeReport = runtimeReport drv;
+  buildtimeDerivations = runCommand "${drv.name}-build" {
+    big = builtins.toJSON (buildtimeDerivations drv);
+    passAsFile = ["big"];
+    buildInputs = [ pkgs.jq];
+    } ''
+      cp $bigPath $out
+    '';
+  # let result = buildtimeDerivations drv;
+  #   in result;
+}
+
+# MIT License
+#
+# Copyright (c) 2021 Nicolas Mattia
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
