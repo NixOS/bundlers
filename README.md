@@ -2,7 +2,6 @@
 
 Bundlers are a way to transform derivations. The most common and default usage is based on the [original by matthewbauer](https://github.com/matthewbauer/nix-bundle). Each bundler is function over a value (usually a derivation) that produces another derivation.
 
-```
 ```console
 $ nix bundle --bundler github:NixOS/bundlers nixpkgs#hello
 ```
