@@ -1,6 +1,10 @@
 # Nix Bundlers
 
-Bundlers are a way to transform derivations. The most common and default usage is based on the [original by matthewbauer](https://github.com/matthewbauer/nix-bundle). Each bundler is function over a value (usually a derivation) that produces another derivation.
+Bundlers are a way to transform derivations. The most common and default
+usage is based on the [original by
+matthewbauer](https://github.com/matthewbauer/nix-bundle). Each bundler
+is function over a value (usually a derivation) that produces another
+derivation.
 
 ```console
 $ nix bundle --bundler github:NixOS/bundlers nixpkgs#hello
@@ -42,6 +46,11 @@ Each bundler needs:
   Each bundler needs one of more maintainers with the knowledge of specific
   area. Each bundler has an entry in `.github/CODEOWNERS` with maintainers
   next to them.
+
+# Inspired by
+- [nixos-generators](https://github.com/nix-community/nixos-generators)
+- [nix-bundle](https://github.com/matthewbauer/nix-bundle)
+- [guix pack](https://guix.gnu.org/manual/en/html_node/Invoking-guix-pack.html)
 
 # License
 
