@@ -76,11 +76,12 @@
     listToAttrs (map
       (name: {
         inherit name;
-        value = {system,program}@drv: self.bundlers.${system}.${name}
+        value = builtins.trace "The bundler API has been updated to require the form `bundlers.<system>.<name>`. The previous API will be deprecated in Nix 2.7. See `https://github.com/NixOS/nix/pull/5456/`"
+        ({system,program}@drv: self.bundlers.${system}.${name}
           (drv // {
             name = baseNameOf drv.program;
             outPath = dirOf (dirOf drv.program);
-          });
+          }));
         })
       (attrNames n.x86_64-linux))
       //
