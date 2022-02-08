@@ -59,12 +59,12 @@
       });
 
       toBuildDerivation = drv:
-        (import ./default.nix {
+        (import ./report/default.nix {
           inherit drv;
           pkgs = nixpkgsFor.${system};}).buildtimeDerivations;
 
       toReport = drv:
-        (import ./default.nix {
+        (import ./report/default.nix {
           inherit drv;
           pkgs = nixpkgsFor.${system};}).runtimeReport;
 

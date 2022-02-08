@@ -29,23 +29,8 @@ TODO: bundlers should be also discoverable on search.nixos.org
 
 Note: This section is a WIP
 
-Each bundler needs:
-
-- `name`
-
-  Folder with the same name should be created and this is a location of the
-  bundler. An entry with `name` is requred in `flake.nix`.
-
-- `description`
-
-  A description that explains the content of the bundler in one sentence. An
-  entry with `description` is requred in `flake.nix`.
-
-- `maintainers`
-
-  Each bundler needs one of more maintainers with the knowledge of specific
-  area. Each bundler has an entry in `.github/CODEOWNERS` with maintainers
-  next to them.
+Each bundler is a function that generally takes a derivation and produces a
+derivation as an output.
 
 # Inspired by
 - [nixos-generators](https://github.com/nix-community/nixos-generators)
