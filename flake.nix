@@ -21,13 +21,12 @@
       nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
 
       # Backwards compatibility helper for pre Nix2.6 bundler API
-      program = p: with builtins; with p; "${outPath}/bin/${
+      program = p: with builtins; with p; "${
         if p?meta && p.meta?mainProgram then
           meta.mainProgram
           else (parseDrvName (unsafeDiscardStringContext p.name)).name
       }";
   in {
-
     # Backwards compatibility helper for pre Nix2.6 bundler API
     defaultBundler = {__functor = s: {...}@arg:
       (if arg?program && arg?system then
@@ -40,37 +39,43 @@
 
     bundlers = let n =
       (forAllSystems (system: {
+
         # Backwards compatibility helper for pre Nix2.6 bundler API
         toArx = drv: (nix-bundle.bundlers.nix-bundle ({
-          program = if drv?program then drv.program else (program drv);
+          program = if drv?program then drv.program else (drv.outPath + program drv);
           inherit system;
         })) // (if drv?program then {} else {name=
           (builtins.parseDrvName drv.name).name;});
 
-      toRPM = drv: nix-utils.bundlers.rpm {inherit system; program=program drv;};
+        toRPM = drv: nix-utils.bundlers.rpm {inherit system; program=drv.outPath + program drv;};
 
-      toDEB = drv: nix-utils.bundlers.deb {inherit system; program=program drv;};
+        toDEB = drv: nix-utils.bundlers.deb {inherit system; program=drv.outPath + program drv;};
 
-      toDockerImage = {...}@drv:
-        (nixpkgs.legacyPackages.${system}.dockerTools.buildLayeredImage {
-          name = drv.name;
-          tag = "latest";
-          contents = [ drv ];
-      });
+        toDockerImage = {...}@drv:
+          (nixpkgs.legacyPackages.${system}.dockerTools.buildLayeredImage {
+            name = drv.name;
+            tag = "latest";
+            contents = [ drv ];
+        });
 
-      toBuildDerivation = drv:
-        (import ./report/default.nix {
-          inherit drv;
-          pkgs = nixpkgsFor.${system};}).buildtimeDerivations;
+        toBuildDerivation = drv:
+          (import ./report/default.nix {
+            inherit drv;
+            pkgs = nixpkgsFor.${system};}).buildtimeDerivations;
 
-      toReport = drv:
-        (import ./report/default.nix {
-          inherit drv;
-          pkgs = nixpkgsFor.${system};}).runtimeReport;
+        toReport = drv:
+          (import ./report/default.nix {
+            inherit drv;
+            pkgs = nixpkgsFor.${system};}).runtimeReport;
 
-      identity = drv: drv;
-    }
-    ));
+        identity = drv: drv;
+      }
+      )) // {
+        x86_64-linux.toAppImage = (import ./appimage.nix {
+          inherit nixpkgs nixpkgsFor nix-bundle program;
+          lib = self.lib;
+        });
+      };
     in with builtins;
     # Backwards compatibility helper for pre Nix2.6 bundler API
     listToAttrs (map
