@@ -27,16 +27,12 @@
           else (parseDrvName (unsafeDiscardStringContext p.name)).name
       }";
   in {
-
-    # Backwards compatibility helper for pre Nix2.6 bundler API
-    defaultBundler = {__functor = s: {...}@arg:
-      (if arg?program && arg?system then
-        nix-bundle.bundlers.nix-bundle arg
-       else with builtins; listToAttrs (map (system: {
-            name = system;
-            value = drv: self.bundlers.${system}.toArx drv;
-          }) supportedSystems));
-      };
+    defaultBundler = builtins.listToAttrs (map (system: {
+        name = system;
+        value = drv: self.bundlers.${system}.toArx drv;
+      }) supportedSystems)
+      # Backwards compatibility helper for pre Nix2.6 bundler API
+      // {__functor = s: nix-bundle.bundlers.nix-bundle;};
 
     bundlers = let n =
       (forAllSystems (system: {
