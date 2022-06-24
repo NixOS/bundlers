@@ -31,19 +31,14 @@
   in {
     defaultBundler = builtins.listToAttrs (map (system: {
         name = system;
-        value = drv: self.bundlers.${system}.toArx (protect drv);
-      }) supportedSystems)
-      # Backwards compatibility helper for pre Nix2.6 bundler API
-      // {__functor = s: nix-bundle.bundlers.nix-bundle;};
+        value = drv: self.bundlers.${system}.default (protect drv);
+      }) supportedSystems);
 
-    bundlers = let n =
-      (forAllSystems (system: {
-        # Backwards compatibility helper for pre Nix2.6 bundler API
-        toArx = drv: (nix-bundle.bundlers.nix-bundle ({
-          program = if drv?program then drv.program else (program drv);
-          inherit system;
-        })) // (if drv?program then {} else {name=
-          (builtins.parseDrvName drv.name).name;});
+    bundlers =
+      (forAllSystems (system: rec {
+
+      default = toArx;
+      toArx = drv: nix-bundle.bundlers.nix-bundle {inherit system; program=program drv;};
 
       toRPM = drv: nix-utils.bundlers.rpm {inherit system; program=program drv;};
 
@@ -69,20 +64,5 @@
       identity = drv: drv;
     }
     ));
-    in with builtins;
-    # Backwards compatibility helper for pre Nix2.6 bundler API
-    listToAttrs (map
-      (name: {
-        inherit name;
-        value = builtins.trace "The bundler API has been updated to require the form `bundlers.<system>.<name>`. The previous API will be deprecated in Nix 2.7. See `https://github.com/NixOS/nix/pull/5456/`"
-        ({system,program}@drv: self.bundlers.${system}.${name}
-          (drv // {
-            name = baseNameOf drv.program;
-            outPath = dirOf (dirOf drv.program);
-          }));
-        })
-      (attrNames n.x86_64-linux))
-      //
-      n;
   };
 }
