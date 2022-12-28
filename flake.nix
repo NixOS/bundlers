@@ -49,7 +49,7 @@
 
       toDockerImage = {...}@drv:
         (nixpkgs.legacyPackages.${system}.dockerTools.buildLayeredImage {
-          name = drv.name;
+          name = drv.name or drv.pname or "image";
           tag = "latest";
           contents = [ drv ];
       });
