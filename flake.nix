@@ -21,15 +21,17 @@
       nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
 
       # Backwards compatibility helper for pre Nix2.6 bundler API
-      program = p: with builtins; with p; "${outPath}/bin/${
+      program = p: with builtins; with (protect p); "${outPath}/bin/${
         if p?meta && p.meta?mainProgram then
           meta.mainProgram
           else (parseDrvName (unsafeDiscardStringContext p.name)).name
       }";
+
+      protect = drv: if drv?outPath then drv else throw "provided installable is not a derivation and not coercible to an outPath";
   in {
     defaultBundler = builtins.listToAttrs (map (system: {
         name = system;
-        value = drv: self.bundlers.${system}.toArx drv;
+        value = drv: self.bundlers.${system}.toArx (protect drv);
       }) supportedSystems)
       # Backwards compatibility helper for pre Nix2.6 bundler API
       // {__functor = s: nix-bundle.bundlers.nix-bundle;};
@@ -51,17 +53,17 @@
         (nixpkgs.legacyPackages.${system}.dockerTools.buildLayeredImage {
           name = drv.name or drv.pname or "image";
           tag = "latest";
-          contents = [ drv ];
+          contents = if drv?outPath then drv else throw "provided installable is not a derivation and not coercible to an outPath";
       });
 
       toBuildDerivation = drv:
         (import ./report/default.nix {
-          inherit drv;
+          drv = protect drv;
           pkgs = nixpkgsFor.${system};}).buildtimeDerivations;
 
       toReport = drv:
         (import ./report/default.nix {
-          inherit drv;
+          drv = protect drv;
           pkgs = nixpkgsFor.${system};}).runtimeReport;
 
       identity = drv: drv;
