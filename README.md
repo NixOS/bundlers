@@ -22,7 +22,7 @@ TODO: bundlers should be also discoverable on search.nixos.org
 
 * Make sure you have a [GitHub account](https://github.com/signup/free)
 * Make sure there is no open issue on the topic
-* [Submit a new issue](https://github.com/NixOS/templates/issues/new)
+* [Submit a new issue](https://github.com/NixOS/bundlers/issues/new)
 
 
 ## What is required to submit a bundler?
