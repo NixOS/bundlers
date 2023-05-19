@@ -8,7 +8,10 @@
   description = "Example bundlers";
 
   inputs.nix-utils.url = "github:juliosueiras-nix/nix-utils";
+  inputs.nix-utils.inputs.nixpkgs.follows = "nixpkgs";
+
   inputs.nix-bundle.url = "github:matthewbauer/nix-bundle";
+  inputs.nix-bundle.inputs.nixpkgs.follows = "nixpkgs";
 
   outputs = { self, nixpkgs, nix-bundle, nix-utils }: let
       # System types to support.
