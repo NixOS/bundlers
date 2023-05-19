@@ -21,11 +21,7 @@
       nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
 
       # Backwards compatibility helper for pre Nix2.6 bundler API
-      program = p: with builtins; with (protect p); "${outPath}/bin/${
-        if p?meta && p.meta?mainProgram then
-          meta.mainProgram
-          else (parseDrvName (unsafeDiscardStringContext p.name)).name
-      }";
+      program = nixpkgs.lib.getExe;
 
       protect = drv: if drv?outPath then drv else throw "provided installable is not a derivation and not coercible to an outPath";
   in {
