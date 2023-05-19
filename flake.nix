@@ -12,6 +12,7 @@
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
   outputs = { self, nixpkgs, nix-bundle, nix-utils }: let
+      inherit (nixpkgs) lib;
       # System types to support.
       supportedSystems = [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
 
@@ -22,11 +23,18 @@
       nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
 
       # Backwards compatibility helper for pre Nix2.6 bundler API
-      program = p: with builtins; with (protect p); "${outPath}/bin/${
-        if p?meta && p.meta?mainProgram then
-          meta.mainProgram
-          else (parseDrvName (unsafeDiscardStringContext p.name)).name
-      }";
+      # TODO: The upstreams of the bundlers using this should be updated to use the new api like nix-bundle was.
+      getExe =
+        x:
+        lib.getExe' x (
+          x.meta.mainProgram or (lib.warn
+            "nix-bundle: Package ${
+              lib.strings.escapeNixIdentifier x.meta.name or x.pname or x.name
+            } does not have the meta.mainProgram attribute. Assuming you want '${lib.getName x}'."
+            lib.getName
+            x
+          )
+        );
 
       protect = drv: if drv?outPath then drv else throw "provided installable is not a derivation and not coercible to an outPath";
   in {
@@ -36,9 +44,9 @@
       default = toArx;
       toArx = nix-bundle.bundlers.${system}.nix-bundle;
 
-      toRPM = drv: nix-utils.bundlers.rpm {inherit system; program=program drv;};
+      toRPM = drv: nix-utils.bundlers.rpm {inherit system; program=getExe drv;};
 
-      toDEB = drv: nix-utils.bundlers.deb {inherit system; program=program drv;};
+      toDEB = drv: nix-utils.bundlers.deb {inherit system; program=getExe drv;};
 
       toDockerImage = {...}@drv:
         (nixpkgs.legacyPackages.${system}.dockerTools.buildLayeredImage {
