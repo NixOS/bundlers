@@ -15,7 +15,7 @@ with rec
   {
     inherit (pkgs)
       closureInfo
-      runCommand
+      runCommandLocal
       writeText
       jq
       ;
@@ -75,7 +75,7 @@ let
 # list of runtime store paths. If it's a match, we keep it. Otherwise, we
 # discard it.
 runtimeReport = drv:
-  runCommand "${drv.name}-report" { buildInputs = [ jq ]; }
+  runCommandLocal "${drv.name}-report" { buildInputs = [ jq ]; }
   # XXX: This is to avoid IFD
   ''
     (
@@ -182,7 +182,7 @@ renderLicense = license:
 
 # This is a wrapper around nixpkgs' `closureInfo`. It produces a JSON file
 # containing a list of the store paths of `drv`'s runtime dependencies.
-cinfo = drv: runCommand "${drv.name}-cinfo"
+cinfo = drv: runCommandLocal "${drv.name}-cinfo"
   { buildInputs = [ jq ]; }
   # NOTE: we avoid IFD here as well
   ''
@@ -194,7 +194,7 @@ cinfo = drv: runCommand "${drv.name}-cinfo"
 
 in {
   runtimeReport = runtimeReport drv;
-  buildtimeDerivations = runCommand "${drv.name}-build" {
+  buildtimeDerivations = runCommandLocal "${drv.name}-build" {
     big = builtins.toJSON (buildtimeDerivations drv);
     passAsFile = ["big"];
     buildInputs = [ pkgs.jq];
