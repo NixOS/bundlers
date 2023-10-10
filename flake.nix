@@ -39,7 +39,7 @@
     bundlers = let n =
       (forAllSystems (system: {
         # Backwards compatibility helper for pre Nix2.6 bundler API
-        toArx = drv: (nix-bundle.bundlers.nix-bundle ({
+      toArx = drv: (nix-bundle.bundlers.nix-bundle ({
           program = if drv?program then drv.program else (program drv);
           inherit system;
         })) // (if drv?program then {} else {name=
@@ -55,6 +55,17 @@
           tag = "latest";
           contents = if drv?outPath then drv else throw "provided installable is not a derivation and not coercible to an outPath";
       });
+
+      toShell = drv:
+        let
+          shelldrv = with nixpkgs.legacyPackages.${system}; writeShellApplication {
+            name = drv.name + "-shell";
+            runtimeInputs = drv.buildInputs ++ drv.propagatedBuildInput ++ [ coreutils bash.out ];
+            text = "bash";
+          };
+        in self.bundlers.${system}.toArx shelldrv;
+
+
 
       toBuildDerivation = drv:
         (import ./report/default.nix {
