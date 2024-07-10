@@ -22,11 +22,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1626704917,
-        "narHash": "sha256-cJ73kxY5ZCPWQeQZyCSdvkBqjqJkU5wgETBNaXfqF18=",
+        "lastModified": 1705194686,
+        "narHash": "sha256-N4SjVAVR9/JniQEgZZYuSHAvgQPXTWrk91RJf3FF39E=",
         "owner": "matthewbauer",
         "repo": "nix-bundle",
-        "rev": "223f4ffc4179aa318c34dc873a08cb00090db829",
+        "rev": "52c1817bbf76726c2e368eb95b754eaf44de4a53",
         "type": "github"
       },
       "original": {
