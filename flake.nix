@@ -13,8 +13,12 @@
     url = "github:nix-community/nix-bundle";
     inputs.nixpkgs.follows = "nixpkgs";
   };
+  inputs.nix-appimage = {
+    url = "github:ralismark/nix-appimage";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
 
-  outputs = { self, nixpkgs, nix-bundle, nix-utils }: let
+  outputs = { self, nixpkgs, nix-bundle, nix-appimage, nix-utils }: let
       inherit (nixpkgs) lib;
       # System types to support.
       supportedSystems = [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
@@ -67,6 +71,8 @@
         (import ./report/default.nix {
           drv = protect drv;
           pkgs = nixpkgsFor.${system};}).runtimeReport;
+
+      toAppImage = nix-appimage.bundlers.${system}.default;
 
       identity = drv: drv;
     }
