@@ -9,6 +9,7 @@
 
   inputs.nix-utils.url = "github:juliosueiras-nix/nix-utils";
   inputs.nix-bundle.url = "github:matthewbauer/nix-bundle";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
   outputs = { self, nixpkgs, nix-bundle, nix-utils }: let
       # System types to support.
