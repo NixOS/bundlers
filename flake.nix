@@ -30,11 +30,6 @@
 
       protect = drv: if drv?outPath then drv else throw "provided installable is not a derivation and not coercible to an outPath";
   in {
-    defaultBundler = builtins.listToAttrs (map (system: {
-        name = system;
-        value = drv: self.bundlers.${system}.default (protect drv);
-      }) supportedSystems);
-
     bundlers =
       (forAllSystems (system: rec {
 
