@@ -1,3 +1,5 @@
+# UNSTABLE, Breaking changes may be done without warning.
+
 # Nix Bundlers
 
 Bundlers are a way to transform derivations. The most common and default
