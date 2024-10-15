@@ -8,7 +8,10 @@
   description = "Example bundlers";
 
   inputs.nix-utils.url = "github:juliosueiras-nix/nix-utils";
+  inputs.nix-utils.inputs.nixpkgs.follows = "nixpkgs";
+
   inputs.nix-bundle.url = "github:matthewbauer/nix-bundle";
+  inputs.nix-bundle.inputs.nixpkgs.follows = "nixpkgs";
 
   outputs = { self, nixpkgs, nix-bundle, nix-utils }: let
       # System types to support.
@@ -21,11 +24,7 @@
       nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
 
       # Backwards compatibility helper for pre Nix2.6 bundler API
-      program = p: with builtins; with (protect p); "${outPath}/bin/${
-        if p?meta && p.meta?mainProgram then
-          meta.mainProgram
-          else (parseDrvName (unsafeDiscardStringContext p.name)).name
-      }";
+      program = nixpkgs.lib.getExe;
 
       protect = drv: if drv?outPath then drv else throw "provided installable is not a derivation and not coercible to an outPath";
   in {
