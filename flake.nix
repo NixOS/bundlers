@@ -34,7 +34,7 @@
       (forAllSystems (system: rec {
 
       default = toArx;
-      toArx = drv: nix-bundle.bundlers.nix-bundle {inherit system; program=program drv;};
+      toArx = nix-bundle.bundlers.${system}.nix-bundle;
 
       toRPM = drv: nix-utils.bundlers.rpm {inherit system; program=program drv;};
 
