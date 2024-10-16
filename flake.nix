@@ -9,6 +9,7 @@
 
   inputs.nix-utils.url = "github:juliosueiras-nix/nix-utils";
   inputs.nix-bundle.url = "github:matthewbauer/nix-bundle";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
   outputs = { self, nixpkgs, nix-bundle, nix-utils }: let
       # System types to support.
@@ -29,21 +30,11 @@
 
       protect = drv: if drv?outPath then drv else throw "provided installable is not a derivation and not coercible to an outPath";
   in {
-    defaultBundler = builtins.listToAttrs (map (system: {
-        name = system;
-        value = drv: self.bundlers.${system}.toArx (protect drv);
-      }) supportedSystems)
-      # Backwards compatibility helper for pre Nix2.6 bundler API
-      // {__functor = s: nix-bundle.bundlers.nix-bundle;};
+    bundlers =
+      (forAllSystems (system: rec {
 
-    bundlers = let n =
-      (forAllSystems (system: {
-        # Backwards compatibility helper for pre Nix2.6 bundler API
-        toArx = drv: (nix-bundle.bundlers.nix-bundle ({
-          program = if drv?program then drv.program else (program drv);
-          inherit system;
-        })) // (if drv?program then {} else {name=
-          (builtins.parseDrvName drv.name).name;});
+      default = toArx;
+      toArx = nix-bundle.bundlers.${system}.nix-bundle;
 
       toRPM = drv: nix-utils.bundlers.rpm {inherit system; program=program drv;};
 
@@ -69,20 +60,5 @@
       identity = drv: drv;
     }
     ));
-    in with builtins;
-    # Backwards compatibility helper for pre Nix2.6 bundler API
-    listToAttrs (map
-      (name: {
-        inherit name;
-        value = builtins.trace "The bundler API has been updated to require the form `bundlers.<system>.<name>`. The previous API will be deprecated in Nix 2.7. See `https://github.com/NixOS/nix/pull/5456/`"
-        ({system,program}@drv: self.bundlers.${system}.${name}
-          (drv // {
-            name = baseNameOf drv.program;
-            outPath = dirOf (dirOf drv.program);
-          }));
-        })
-      (attrNames n.x86_64-linux))
-      //
-      n;
   };
 }
