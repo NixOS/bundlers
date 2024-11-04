@@ -7,9 +7,12 @@
 {
   description = "Example bundlers";
 
-  inputs.nix-utils.url = "github:juliosueiras-nix/nix-utils";
-  inputs.nix-bundle.url = "github:matthewbauer/nix-bundle";
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  inputs.nix-utils.url = "github:juliosueiras-nix/nix-utils";
+  inputs.nix-bundle = {
+    url = "github:nix-community/nix-bundle";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
 
   outputs = { self, nixpkgs, nix-bundle, nix-utils }: let
       inherit (nixpkgs) lib;
