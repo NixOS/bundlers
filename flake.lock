@@ -58,11 +58,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1749006067,
-        "narHash": "sha256-rSwndd+4JmGrjR/APDTgJlXTEPwfCmt7UF+SceW3bfM=",
+        "lastModified": 1757920913,
+        "narHash": "sha256-jd0QwCVz4O1sHHkeaZILD/7D6oyalceEJ4EFnWCgm0k=",
         "owner": "ralismark",
         "repo": "nix-appimage",
-        "rev": "5dadbcd9f0da9adc49d6d831d5c2eab0bbfdae67",
+        "rev": "7946addbc0d97e358a6d7aefe5e82310f0fe6b18",
         "type": "github"
       },
       "original": {
